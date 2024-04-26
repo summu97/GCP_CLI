@@ -30,14 +30,14 @@ INBOUND:
 gcloud compute firewall-rules create <FIREWALL_NAME> --network VPC-NAME --allow tcp:22,tcp:3389,icmp --source-ranges <IP_RANGE> --destination-ranges <IP_RANGE> --priority 1000 --target-tags sumanth-vm
 
 Ex:
-gcloud compute firewall-rules create sumanth-firewall --network sumanth-vpc --allow tcp:22,tcp:3389,icmp,tcp:80,tcp:8080 --source-ranges 0.0.0.0/0 --destination-ranges 10.0.1.0/24 --priority 900 --target-tags sumanth-vm
+gcloud compute firewall-rules create sumanth-firewall --network sumanth-vpc --allow tcp:22,tcp:3389,icmp,tcp:80,tcp:8080 --source-ranges 0.0.0.0/0 --destination-ranges 10.0.1.0/24 --priority 900 --target-tags sumanth-tag
 ----------
 
 OUTBOUND:
 gcloud compute firewall-rules create sumanth-out-firewall --network sumanth-vpc --direction=EGRESS --allow/deny tcp:800,tcp:5000 --source-ranges <IP_RANGE> --destination-ranges <IP_RANGE> --priority 1000 --target-tags instance-tag
 
 Ex:
-gcloud compute firewall-rules create sumanth-out-firewall --network sumanth-vpc --direction=EGRESS --allow tcp:800,tcp:5000 --source-ranges 10.0.1.0/24 --destination-ranges 10.0.1.0/24 --priority 1000 --target-tags sumanth-vm
+gcloud compute firewall-rules create sumanth-out-firewall --network sumanth-vpc --direction=EGRESS --allow tcp:800,tcp:5000 --source-ranges 10.0.1.0/24 --destination-ranges 10.0.1.0/24 --priority 1000 --target-tags sumanth-tag
 ----------
 
 SERVICE-ACCOUNT:
@@ -59,7 +59,7 @@ gcloud projects get-iam-policy your-project-id --flatten="bindings[].members" --
 Ex:
 gcloud projects get-iam-policy ringed-hallway-417305 --flatten="bindings[].members" --filter="bindings.members:serviceAccount:bastion@ringed-hallway-417305.iam.gserviceaccount.com"
 ----------
-ROLES:
+ADDING-ROLES:
 
 gcloud projects add-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/compute.networkUser
 gcloud projects add-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/compute.instanceAdmin.v1
@@ -69,7 +69,29 @@ roles:
 admin(full): --role=roles/owner
 editor(create, delete, browse): --role=roles/editor
 ----------
+ADDING-USER-TO-SERVICE-ACCOUNT:
 
+gcloud iam service-accounts add-iam-policy-binding --role roles/iam.serviceAccountTokenCreator --member user:saravana09052002aws@gmail.com SERVICE_ACCOUNT_EMAIL
+
+Ex:
+gcloud iam service-accounts add-iam-policy-binding --role roles/iam.serviceAccountTokenCreator --member user:saravana09052002aws@gmail.com sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com
+
+----------
+
+TO-KNOW-WHICH-USER-IS ATTACHED-TO-SERVICE-ACCOUNT:
+gcloud iam service-accounts get-iam-policy SERVICE_ACCOUNT_EMAIL
+
+Ex:
+gcloud iam service-accounts get-iam-policy sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com
+----------
+DETACH-USER-FROM-SERVICE-ACCOUNT:
+
+gcloud iam service-accounts remove-iam-policy-binding SERVICE_ACCOUNT_EMAIL --member=user:USER_EMAIL --role=roles/iam.serviceAccountTokenCreator
+
+Ex:
+gcloud iam service-accounts remove-iam-policy-binding sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --member user:saravana09052002aws@gmail.com --role roles/iam.serviceAccountTokenCreator  
+
+----------
 REMOVE_ROLES:
 
 gcloud projects remove-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/compute.networkUser
@@ -77,6 +99,14 @@ gcloud projects remove-iam-policy-binding PROJECT-ID --member=serviceAccount:SER
 Ex:
 gcloud projects remove-iam-policy-binding ringed-hallway-417305 --member=serviceAccount:sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --role=roles/editor
 
+----------
+
+COMPLETE-VM-INSTANCE:
+
+gcloud compute instances create VM-NAME --project PROJECT-ID --machine-type MACHINE-TYPE --zone ZONE --tags TAG --service-account SERVICE-ACCOUNT-ID --image=IMAGE --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-auto-delete --scopes=https://www.googleapis.com/auth/compute
+
+Ex:
+gcloud compute instances create sumanth-vm --project ringed-hallway-417305 --machine-type e2-micro --zone asia-east1-b --tags sumanth-tag --service-account sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --image=ubuntu-2204-jammy-v20240319 --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-auto-delete --scopes=https://www.googleapis.com/auth/compute
 ----------
 
 VM-INSTANCE-WITH-EXTERNAL-IP:
@@ -90,6 +120,346 @@ gcloud compute instances create sumanth-vm --machine-type e2-micro --zone asia-e
 VM-INSTANCE-WITHOUT-EXTERNAL-IP:
 
 gcloud compute instances create VN-NAME --machine-type n1-standard-4 --zone ZONE --network VPC-NAME--subnet PRIVATE-SUBNET-NAME --tags N/W-TAG --service-account SERVICE-ACCOUNT-ID --no-address
+=======================================
+
+DESCRIBE-VM-INSTANCE:
+gcloud compute instances describe INSTANCE_NAME --zone ZONE
+
+Ex:
+gcloud compute instances describe sumanth-vm --zone asia-east1-b
+----------
+BOOT_DISK:
+
+gcloud compute disks create DISK-NAME --size=10GB --zone=ZONE
+
+Ex:
+gcloud compute disks create sumanth-boot-1 --size=10GB --zone asia-east1-b
+
+LIST DISKS:
+gcloud compute disks list
+
+(gcloud compute disks list --filter="type:pd-standard OR type:pd-ssd AND users:INSTANCE_NAME")
+----------
+
+CREATING-VM-WITH-ABOVE-BOOT-DISK:
+
+gcloud compute instances create sumanth-vm --project ringed-hallway-417305 --machine-type e2-micro --zone asia-east1-b --tags sumanth-tag --service-account sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --image=ubuntu-2204-jammy-v20240319 --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-auto-delete --scopes=https://www.googleapis.com/auth/compute --disk=name=sumanth-boot-1 --disk=name=sumanth-boot-2
+----------
+
+DELETING-INSTANCE---KEEPING-BOOT-DISK:
+
+gcloud compute instances delete VM_INSTANCE_NAME --zone ZONE --keep-disks=boot
+
+Ex:
+gcloud compute instances delete sumanth-vm --zone asia-east1-b --keep-disks=boot
+----------
+
+DETACH-BOOT-DISK:
+
+gcloud compute instances detach-disk VM_INSTANCE_NAME --disk OLD_BOOT_DISK_NAME --zone ZONE
+
+Ex:
+gcloud compute instances detach-disk sumanth-vm --zone asia-east1-b --disk sumanth-boot-1
+-----------
+
+ATTACH-ADDITIONAL-DISK:
+
+gcloud compute instances attach-disk VM_INSTANCE_NAME --disk DISK_NAME --zone ZONE
+
+Ex:
+gcloud compute instances attach-disk sumanth-vm --disk sumanth-boot-1 --zone asia-east1-b
+
+NOTE:
+Instance must be in stopped state to attach disk.
+It wont accept if you try to add disk as new boot disk.
+----------
+
+ATTACHING-NEW-BOOT-DISK:
 
 
+gcloud compute instances attach-disk VM_INSTANCE_NAME --disk DISK_NAME --boot --zone ZONE
 
+
+Ex:
+gcloud compute instances attach-disk sumanth-vm --disk sumanth-vm --boot --zone asia-east1-b
+
+
+NOTE:
+First remove old boot disks and the attach new boot disk.
+----------
+STORAGE-BUCKET:
+
+*Create a service_account:
+gcloud iam service-accounts create storage-bucket --description="storage-bucket practise" --display-name="gs-storage"
+
+*Create a bucket:
+gsutil mb -c NEARLINE -p public -l us-central1 -p ringed-hallway-417305 -b on gs://adq-bucket-dev-getteam (this is not publicly visible)
+
+NOTE:
+To make the bucket publicly accessible, you'll need to adjust the bucket's permissions. You can make the bucket publicly accessible by setting the ACL (Access Control List) to allow allUsers to read objects.
+----------------------------------------------------------------------------------------------------------------------------------------
+Creating a bucket:
+gsutil mb -c STANDARD_IA -p <permissions> -l us-central1 -p your_project_id -b on gs://your_bucket_name
+
+-p = access control (private, public-read, public-read-write, authenticated-read)
+-l = location	
+-p = project-id
+-b = bucket versioning (on or remobe -b)
+-c = storage class
+
+Storage classes:
+
+STANDARD(Best for short-term storage and frequently accessed data)				:	gsutil mb -c STANDARD -l <region> gs://your-bucket-name
+NEARLINE(Best for backups and data accessed less than once a month)				:	gsutil mb -c NEARLINE -l <region> gs://your-bucket-name
+COLDLINE(Best for disaster recovery and data accessed less than once a quarter)			:	gsutil mb -c COLDLINE -l <region> gs://your-bucket-name
+ARCHIVE(Best for long-term digital preservation of data accessed less than once a year)		:	gsutil mb -c ARCHIVE -l <region> gs://your-bucket-name
+----------------------------------------------------------------------------------------------------------------------------------------
+
+*To make bucket publicly visible:
+gsutil iam ch allUsers:objectViewer gs://adq-bucket-dev-getteam
+
+*To remove access to all users:
+gsutil iam ch -d allUsers gs://adq-bucket-dev-getteam
+
+*Give access to specific user:
+gsutil iam ch user:USERNAME@example.com:objectViewer gs://adq-bucket-dev-getteam
+
+*To remove access to specific user:
+gsutil iam ch -d user:USERNAME@example.com gs://adq-bucket-dev-getteam
+
+*Adding service account to a bucket:
+gsutil iam ch serviceAccount:example@project-id.iam.gserviceaccount.com:roles/YOUR_ROLE gs://adq-bucket-dev-getteam
+
+{
+gsutil iam ch serviceAccount:sumanth@ringed-hallway-417305.iam.gserviceaccount.com:roles/storage.objectCreator gs://adq-bucket-dev-getteam
+gsutil iam ch serviceAccount:sumanth@ringed-hallway-417305.iam.gserviceaccount.com:roles/storage.objectViewer gs://adq-bucket-dev-getteam
+gsutil iam ch serviceAccount:sumanth@ringed-hallway-417305.iam.gserviceaccount.com:roles/storage.admin gs://adq-bucket-dev-getteam
+																	}
+
+
+*Removing service account from bucket:
+gsutil iam ch -d serviceAccount:example@project-id.iam.gserviceaccount.com gs://adq-bucket-dev-getteam
+
+{
+gsutil iam ch -d serviceAccount:sumanth@ringed-hallway-417305.iam.gserviceaccount.com gs://adq-bucket-dev-getteam
+														}
+*To see the permissions a user have on bucket:
+gsutil iam get gs://adq-bucket-dev-getteam
+
+NOTE:
+ch = change
+ It's used to change the IAM policy for a Google Cloud Storage bucket.
+-d = detach
+-----------------------------------------------------------------------------------------
+1. **private**: This ACL grants access only to the project owners and project editors. Bucket and object data are not accessible to anyone else, including project viewers.
+
+2. **projectPrivate**: This ACL grants access to project team members and Google services that require access for the project, but it does not grant access to any other users or services.
+
+3. **publicRead**: This ACL grants read access to everyone. Anyone on the internet can view objects in the bucket.
+
+4. **publicReadWrite**: This ACL grants read and write access to everyone. Anyone on the internet can view and modify objects in the bucket.
+
+5. **authenticatedRead**: This ACL grants read access to anyone with a Google account. Authentication is required.
+
+6. **bucketOwnerFullControl**: This ACL grants full control of the bucket to the bucket owner. Object data is accessible only to the bucket owner.
+
+7. **bucketOwnerRead**: This ACL grants read access to the bucket owner. Object data is accessible only to the bucket owner.
+-----------
+* CREATE VM: with default VPC
+
+gcloud compute instances create sumanth-vm --project ringed-hallway-417305 --machine-type=n1-standard-4 --zone=us-east1-b --service-account=terraform@ringed-hallway-417305.iam.gserviceaccount.com --image=ubuntu-2204-jammy-v20240319 --image-project=ubuntu-os-cloud --boot-disk-size=200GB --boot-disk-auto-delete --scopes=https://www.googleapis.com/auth/compute
+---------------------------------------
+To list available images: gcloud compute images list
+
+use the following as reference to take image you need from the list display.
+
+--image=ubuntu-2204-jammy-v20240319 --image-project=ubuntu-os-cloud
+NAME: ubuntu-2204-jammy-v20240319
+PROJECT: ubuntu-os-cloud
+FAMILY: ubuntu-2204-lts
+DEPRECATED: 
+STATUS: READY
+---------------------------------------
+To get the name or list the disks available: gcloud compute disks list
+NAME: sumanth-vm
+LOCATION: us-east1-b
+LOCATION_SCOPE: zone
+SIZE_GB: 200
+TYPE: pd-standard
+STATUS: READY
+
+* CREATE IMAGE FROM VM: Here you are using the above created vm's source disk as reference, so use its disk name as source.
+
+gcloud compute images create my-image --source-disk=sumanth-vm --source-disk-zone=us-east1-b
+
+NAME: my-image
+PROJECT: ringed-hallway-417305
+FAMILY: 
+DEPRECATED: 
+STATUS: READY
+
+NOTE:
+you need to stop the vm before taking image.
+---------------------------------------
+TO LIST IMAGES USING NAME: gcloud compute images list --filter="name=my-image"
+OUTPUT:
+NAME: my-image
+PROJECT: ringed-hallway-417305
+FAMILY: 
+DEPRECATED: 
+STATUS: READY
+
+* TO CREATE VM USING ABOVE IMAGE:
+
+gcloud compute instances create INSTANCE-NAME --image=my-image --image-project=ringed-hallway-417305 --machine-type=n1-standard-4 --zone=us-east1-b
+
+NOTE:
+make sure to change image, image-project .....
+---------------------------------------
+LIST ALL DISKS: gcloud compute disks list
+
+OUTPUT:
+NAME: sumanth-vm
+LOCATION: us-east1-b
+LOCATION_SCOPE: zone
+SIZE_GB: 200
+TYPE: pd-standard
+STATUS: READY
+
+* CREATE SNAPSHOT FROM VOLUME:
+gcloud compute disks snapshot sumanth-vm --snapshot-names=my-snap --zone=us-east1-b
+
+This command creates a snapshot named my-snapshot from a disk named sumanth-vm located in the us-east1-b zone. Adjust the values according to your disk and zone configurations.
+tolist the snapshots:
+gcloud compute snapshots list
+
+---------------------------------------
+CREATE VM USING ABOVE SNAPSHOT:
+gcloud compute instances create INSTANCE-NAME --machine-type=MACHINE-TYPE --source-snapshot=SNAPSHOT-NAME --zone=ZONE
+
+INSTANCE-NAME with the name you want to give to the new VM instance.
+MACHINE-TYPE with the desired machine type for the VM instance (e.g., n1-standard-2).
+SNAPSHOT-NAME with the name of the snapshot you want to use as the source for the boot disk.
+ZONE with the zone where you want to create the VM instance.
+
+EX:
+gcloud compute instances create my-vm --machine-type=n1-standard-2 --source-snapshot=my-snap --zone=us-west1-a
+
+---------------------------------------
+
+
+gcloud compute disks create my-disk --type=pd-standard --size=10GB --region=us-east1-b
+---------------------------------------
+LIST ALL SNAPSHOTS:
+gcloud compute snapshots list
+
+OUTPUT:
+NAME: my-snap
+DISK_SIZE_GB: 200
+SRC_DISK: us-east1-b/disks/sumanth-vm
+STATUS: READY
+
+* CREATE DISK FROM SNAPSHOT:Zonal disk
+gcloud compute disks create DISK-NAME --source-snapshot=SNAPSHOT-NAME --zone=ZONE
+
+EX:
+gcloud compute disks create zonal-disk --source-snapshot=my-snap --zone=us-east1-b
+
+OUTPUT:
+NAME: zonal-disk
+ZONE: us-east1-b
+SIZE_GB: 200
+TYPE: pd-standard
+STATUS: READY
+
+* CREATE DISK FROM SNAPSHOT:Regional disk-multi-regional, with increased size.
+gcloud compute disks create my-regional-disk --type=pd-standard --size=500GB --region=us-west1 --source-snapshot=my-snapshot --replica-zones=us-west1-a,us-west1-b
+
+OUTPUT:
+NAME: my-regional-disk
+ZONE: 
+SIZE_GB: 500
+TYPE: pd-standard
+STATUS: READY
+
+* CREATE DISK MANUALLY:
+gcloud compute disks create my-disk --type=pd-standard --size=10GB --zone=us-east1-b
+
+---------------------------------------
+TO LIST DISKS:
+gcloud compute disks list
+gcloud compute disks list --filter="name=my-regional-disk"
+
+
+OUTPUT:
+NAME: my-regional-disk
+LOCATION: us-west1
+LOCATION_SCOPE: region
+SIZE_GB: 500
+TYPE: pd-standard
+STATUS: READY
+
+NAME: zonal-disk
+LOCATION: us-east1-b
+LOCATION_SCOPE: zone
+SIZE_GB: 200
+TYPE: pd-standard
+STATUS: READY
+
+---------------------------------------
+Standard Persistent Disk (pd-standard)	 : Good for general use, offering reliable performance at a lower cost.
+SSD Persistent Disk(pd-ssd)		 : Provides high-performance storage with low latency and high IOPS, suitable for demanding applications.
+Balanced Persistent Disk (pd-balanced)	 : Offers a balance between performance and cost, providing better performance than Standard Disks at a reasonable price.
+---------------------------------------
+NOTE: using volume/disk we can create snapshot, images, and instance also.
+you cant create image and instance of regional disk.
+you can create snapshot from volume and vice-versa.
+if you want to create image or instance from regional disk first you need to create snapshot of it and then create from it.
+---------------------------------------
+gcloud compute instances create my-vm --machine-type=n1-standard-2 --source-snapshot=my-snap --zone=us-west1-a
+
+---------------------------------------
+
+
+* UPLOAD IMAGE TO STORAGE BUCKERT: Send the disk image file to a Cloud Storage bucket.
+
+To list images by name:
+gcloud compute images list --filter="name=my-image"
+
+To describe images:
+gcloud compute images describe my-image
+
+To export image to bucket:
+gcloud compute images export --image=my-image --image-project=ringed-hallway-417305 --destination-uri=gs://adq-bucket-getteam//sumanth.tar.gz --zone=us-east1-a
+
+NOTE:
+Make sure to create storage bucket and put it in destination-uri
+Change Image_name, image-project(give project where your image is located), and zone.
+
+Restricted regions for some projects
+Depending on usage, certain projects may be restricted to only use Cloud Build in the following regions:
+
+us-central1
+us-west2
+europe-west1
+asia-east1
+australia-southeast1
+southamerica-east1
+
+Using the image from storage bucket:
+gsutil cp gs://adq-bucket-getteam/image-export.tar.gz .
+image-export.tar.gz
+tar -xzvf image-export.tar.gz
+
+
+Use the custom image: When creating new virtual machines in GCP, select your custom image as the base.
+
+---------------------------------------
+gcloud compute disks create my-disk --type=pd-standard --size=10GB --region=us-east1-b
+
+gcloud compute images create my-image --source-disk=my-disk --source-disk-zone=us-east1-b
+
+gcloud compute images export --image=my-image --image-project=ringed-hallway-417305 --destination-uri=gs://adq-bucket-getteam//sumanth.tar.gz --zone=asia-east1
+
+to do:
+extract the image from storage bucket and create vm?
