@@ -1,0 +1,95 @@
+LIST-AVAILABLE-REGIONS:
+gcloud compute regions list
+
+LIST-AVAILABLE-MACHINE-TYPES:
+gcloud compute machine-types list | grep -i n1
+----------
+
+VPC:
+gcloud compute networks create VPC-NAME --subnet-mode=custom --description="vpc cli"
+
+Ex:
+gcloud compute networks create sumanth-vpc --subnet-mode=custom --description="vpc through cli"
+
+Delete-VPC:
+gcloud compute networks delete VPC-NAME
+----------
+SUBNET:
+gcloud compute networks subnets create SUBNET-NAME --network=VPC-NAME --region=REGION --range=10.0.1.0/24
+
+Ex:
+gcloud compute networks subnets create sumanth-subnet --network=sumanth-vpc --region=asia-east1 --range=10.0.1.0/24
+
+LIST-SUBNETS-IN-PARTICULAR-VPC:
+gcloud compute networks subnets list --filter="network:sumanth-vpc"
+
+----------
+FIREWALL-RULES:
+
+INBOUND:
+gcloud compute firewall-rules create <FIREWALL_NAME> --network VPC-NAME --allow tcp:22,tcp:3389,icmp --source-ranges <IP_RANGE> --destination-ranges <IP_RANGE> --priority 1000 --target-tags sumanth-vm
+
+Ex:
+gcloud compute firewall-rules create sumanth-firewall --network sumanth-vpc --allow tcp:22,tcp:3389,icmp,tcp:80,tcp:8080 --source-ranges 0.0.0.0/0 --destination-ranges 10.0.1.0/24 --priority 900 --target-tags sumanth-vm
+----------
+
+OUTBOUND:
+gcloud compute firewall-rules create sumanth-out-firewall --network sumanth-vpc --direction=EGRESS --allow/deny tcp:800,tcp:5000 --source-ranges <IP_RANGE> --destination-ranges <IP_RANGE> --priority 1000 --target-tags instance-tag
+
+Ex:
+gcloud compute firewall-rules create sumanth-out-firewall --network sumanth-vpc --direction=EGRESS --allow tcp:800,tcp:5000 --source-ranges 10.0.1.0/24 --destination-ranges 10.0.1.0/24 --priority 1000 --target-tags sumanth-vm
+----------
+
+SERVICE-ACCOUNT:
+
+gcloud iam service-accounts create NAME --description="cli created sa" --display-name="NAME"
+
+Ex:
+gcloud iam service-accounts create sumanth-service-account --description="sumanth created service-account" --display-name="sumanth-service-account"
+(sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com)
+
+List service-acounts:
+gcloud iam service-accounts list
+----------
+
+LIST-ROLES-ATTACHED-TO-SERVICE_ACCOUNT:
+
+gcloud projects get-iam-policy your-project-id --flatten="bindings[].members" --filter="bindings.members:serviceAccount:service-account-email@your-project-id.iam.gserviceaccount.com"
+
+Ex:
+gcloud projects get-iam-policy ringed-hallway-417305 --flatten="bindings[].members" --filter="bindings.members:serviceAccount:bastion@ringed-hallway-417305.iam.gserviceaccount.com"
+----------
+ROLES:
+
+gcloud projects add-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/compute.networkUser
+gcloud projects add-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/compute.instanceAdmin.v1
+gcloud projects add-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/editor
+
+roles:
+admin(full): --role=roles/owner
+editor(create, delete, browse): --role=roles/editor
+----------
+
+REMOVE_ROLES:
+
+gcloud projects remove-iam-policy-binding PROJECT-ID --member=serviceAccount:SERVICE-ACCOUNT-ID --role=roles/compute.networkUser
+
+Ex:
+gcloud projects remove-iam-policy-binding ringed-hallway-417305 --member=serviceAccount:sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --role=roles/editor
+
+----------
+
+VM-INSTANCE-WITH-EXTERNAL-IP:
+
+gcloud compute instances create VM-NAME --machine-type n1-standard-4 --zone ZONE --network VPC-NAME --subnet PUBLIC-SUBNET-NAME --tags N/W-TAG --service-account SERVICE-ACCOUNT-ID --scopes=https://www.googleapis.com/auth/compute
+
+Ex:
+gcloud compute instances create sumanth-vm --machine-type e2-micro --zone asia-east1-b --network sumanth-vpc --subnet sumanth-subnet --tags sumanth-tag --service-account sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --scopes=https://www.googleapis.com/auth/compute
+----------
+
+VM-INSTANCE-WITHOUT-EXTERNAL-IP:
+
+gcloud compute instances create VN-NAME --machine-type n1-standard-4 --zone ZONE --network VPC-NAME--subnet PRIVATE-SUBNET-NAME --tags N/W-TAG --service-account SERVICE-ACCOUNT-ID --no-address
+
+
+
