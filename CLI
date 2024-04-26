@@ -463,3 +463,24 @@ gcloud compute images export --image=my-image --image-project=ringed-hallway-417
 
 to do:
 extract the image from storage bucket and create vm?
+----------
+INSTANCE-TEMPLATE:
+
+gcloud compute instance-templates create VM-NAME --machine-type e2-micro --network VPC-NAME --subnet PUBLIC-SUBNET-NAME --tags N/W-TAG --service-account SERVICE-ACCOUNT-ID --scopes=https://www.googleapis.com/auth/compute --zone ZONE 
+
+Ex:
+gcloud compute instance-templates create sumanth-vm-template --machine-type e2-micro --network sumanth-vpc --subnet sumanth-subnet --tags sumanth-tag --service-account sumanth-service-account@ringed-hallway-417305.iam.gserviceaccount.com --scopes=https://www.googleapis.com/auth/compute --zone asia-east1-b
+----------
+
+MANAGED-INSTANCE-GROUP-USING-ABOVE-TEMPLATE:(not tried)
+
+gcloud compute instance-groups managed create INSTANCE_GROUP_NAME --base-instance-name BASE_INSTANCE_NAME --template INSTANCE_TEMPLATE_NAME --size SIZE --zone ZONE --max-num-replicas MAX_REPLICAS --min-num-replicas MIN_REPLICAS --target-cpu-utilization TARGET_CPU_UTILIZATION --autohealing [ADDITIONAL_OPTIONS]
+
+----------
+UNMANAGED-INSTANCE-GROUP:
+
+create Instance group:
+gcloud compute instance-groups unmanaged create custom-instance-group --zone=us-east1-b
+
+creating Instance group from above instances:
+gcloud compute instance-groups unmanaged add-instances custom-instance-group --instances=instance-1,instance-2 --zone=us-east1-b
