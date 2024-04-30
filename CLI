@@ -484,3 +484,72 @@ gcloud compute instance-groups unmanaged create custom-instance-group --zone=us-
 
 creating Instance group from above instances:
 gcloud compute instance-groups unmanaged add-instances custom-instance-group --instances=instance-1,instance-2 --zone=us-east1-b
+
+------------------
+STORAGE_BUCKET:
+------------------
+NOTE: If you want to write any logs to other bucket make sure to have 'storage.objectCreator' Permission.
+
+Regional Bucket:
+gsutil mb -c STANDARD -p public -l us-central1 -p ringed-hallway-417305 -b on gs://adq-bucket-dev-getteam
+
+Muilti-regional Bucket:
+gsutil mb -c STANDARD -p public -l us -p ringed-hallway-417305 -b on gs://adq-bucket-dev-getteam
+
+Versioning On:
+gsutil versioning set on gs://adq-bucket-test-getteam
+
+Versioning Off:
+gsutil versioning set off gs://adq-bucket-dev-getteam
+
+To know if Versioning is enabled or not:
+gsutil versioning get gs://adq-bucket-dev-getteam
+
+To know service accounts associated with bucket:
+gsutil iam get gs://adq-bucket-dev-getteam
+
+To get the configuration Detils of Bucket:
+gsutil ls -L -b gs://adq-bucket-dev-getteam
+
+===========================
+Setting lifecycle to Bucket:
+
+lifecycle.json
+------
+{
+  "lifecycle": {
+    "rule": [
+      {
+        "action": {
+          "type": "Delete"
+        },
+        "condition": {
+          "age": 365
+        }
+      }
+    ]
+  }
+}
+------
+To apply the lifecycle:
+gsutil lifecycle set lifecycle.json gs://adq-bucket-dev-getteam
+===========================
+To know the lifecycle set to Bucket:
+gsutil lifecycle get gs://adq-bucket-dev-getteam
+
+To list different versions of file:
+gsutil ls -a gs://adq-bucket-dev-getteam/path-to-file
+
+To list particular no of versions of file:
+gsutil ls -a gs://adq-bucket-dev-getteam/ | head -n 2
+
+
+Synchronising two buckets:
+gsutil -m rsync -r gs://adq-bucket-dev-getteam/ gs://adq-bucket-test-getteam
+
+To enable logging to a bucket:
+gsutil logging set on -b gs://adq-logs-bucket gs://adq-bucket-dev-getteam
+
+To know if logging is allowed to bucket or not:
+gsutil logging get gs://adq-bucket-dev-getteam
+
