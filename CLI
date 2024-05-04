@@ -552,4 +552,17 @@ gsutil logging set on -b gs://adq-logs-bucket gs://adq-bucket-dev-getteam
 
 To know if logging is allowed to bucket or not:
 gsutil logging get gs://adq-bucket-dev-getteam
+-------------------------------------------------------------
+IMAGE_REFERENCE:
 
+gcloud compute instances create sumanth-vm --project ringed-hallway-417305 --machine-type=n1-standard-4 --zone=us-east1-b --service-account=terraform@ringed-hallway-417305.iam.gserviceaccount.com --image=ubuntu-2204-jammy-v20240319 --image-project=ubuntu-os-cloud --boot-disk-size=200GB --boot-disk-auto-delete --scopes=https://www.googleapis.com/auth/compute
+To list available images: gcloud compute images list
+
+use the following as reference to take image you need from the list display.
+
+--image=ubuntu-2204-jammy-v20240319 --image-project=ubuntu-os-cloud
+NAME: ubuntu-2204-jammy-v20240319
+PROJECT: ubuntu-os-cloud
+FAMILY: ubuntu-2204-lts
+DEPRECATED: 
+STATUS: READY
