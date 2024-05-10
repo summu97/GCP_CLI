@@ -566,3 +566,67 @@ PROJECT: ubuntu-os-cloud
 FAMILY: ubuntu-2204-lts
 DEPRECATED: 
 STATUS: READY
+-----------------------------------------------
+Firewall policies using: 
+UI:
+Configure policy-->name-->Deployment scope(Global or Regional)-->Add rules-->Firewall rules-->Add--> Continue-->Associate policy with VPC networks-->Create. 
+
+To list firewall-policies:
+gcloud compute firewall-policies list --project=YOUR_PROJECT_ID
+
+Ex:
+gcloud compute network-firewall-policies list --project=ringed-hallway-417305
+
+CLI:
+
+GLOBAL POLICY:
+gcloud compute network-firewall-policies create NETWORK_FIREWALL_POLICY_NAME --description DESCRIPTION --global
+
+Ex:
+gcloud compute network-firewall-policies create custom-policy --description "my own policy" --global
+
+To delete firewall-policy:
+gcloud compute network-firewall-policies delete FIREWALL-POLICY NAME --global
+
+Ex:
+gcloud compute network-firewall-policies delete custom-policy --global
+
+ASSOCIATE WITH NETWORK:
+gcloud compute network-firewall-policies associations create --firewall-policy POLICY_NAME --network NETWORK_NAME [ --name ASSOCIATION_NAME ] --global-firewall-policy
+
+Ex:
+gcloud compute network-firewall-policies associations create --firewall-policy custom-policy --network sumanth-vpc --global-firewall-policy
+
+To know the policies attached to network:
+gcloud compute networks describe NETWORK_NAME --format="get(firewallPolicies)"
+
+Ex:
+gcloud compute networks describe sumanth-vpc --format="get(firewallPolicies)"
+
+DESCRIBE FIREWALL POLICY:
+gcloud compute network-firewall-policies describe POLICY_NAME --global
+
+Ex:
+gcloud compute network-firewall-policies describe custom-policy --global
+
+CREATING FIREWALL POLICIY RULES:
+gcloud compute network-firewall-policies rules create 100 --action allow --firewall-policy custom-policy --description "association rules to policy" --direction EGRESS --src-ip-ranges 0.0.0.0/0 --dest-ip-ranges 0.0.0.0/0 --layer4-configs tcp:80 --global-firewall-policy
+----------------------------------------------------------------------
+
+REGIONAL POLICY:
+gcloud compute network-firewall-policies create NETWORK_FIREWALL_POLICY_NAME --description DESCRIPTION --region=REGION_NAME
+
+Ex:
+gcloud compute network-firewall-policies create regional-policy --description "regional policy" --region=us-east1
+
+To delete firewall-policy:
+gcloud compute network-firewall-policies delete FIREWALL-POLICY NAME --region REGION
+Ex:
+gcloud compute network-firewall-policies delete regional-policy --region us-east1
+
+
+
+GO THROUGH DOCUMENTATION:
+
+
+---------------------
