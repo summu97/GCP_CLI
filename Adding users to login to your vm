@@ -1,0 +1,89 @@
+* Compute OS Admin Login: Suitable for system administrators, DevOps engineers, and others who need full control over the VM for tasks such as system configuration, software installation, and maintenance.
+* Compute OS Login: Suitable for developers, testers, and other users who need to run applications, manage their own files, and perform tasks that do not require administrative privileges.
+
+Step-by-Step Guide to Assign the Role
+Enable Necessary APIs
+Assign IAM Role to the VM Instance
+Enable OS Login on the VM Instance
+Assign OS Login Roles to the User
+Ensure Firewall Rules Allow IAP Traffic
+
+1. Enable Necessary APIs
+[Ensure that the Identity-Aware Proxy API and Compute Engine API are enabled for your project]
+gcloud services enable iap.googleapis.com compute.googleapis.com
+
+2. Assign Project Viewer Role:
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member='user:username@example.com' \
+    --role='roles/viewer'
+
+3. Assign serviceAccountUser:
+gcloud projects add-iam-policy-binding sumanth-97 \
+    --member='user:saravana08052002@gmail.com' \
+    --role='roles/iam.serviceAccountUser'
+
+4. Assign OS Login Role (for standard user access):
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member='user:username@example.com' \
+    --role='roles/compute.osLogin'
+         (or)
+4. (Optional) Assign OS Admin Login Role (for admin access):
+gcloud projects add-iam-policy-binding PROJECT_ID \
+    --member='user:username@example.com' \
+    --role='roles/compute.osAdminLogin'
+
+5. Enable OS Login for the VM Instance:
+gcloud compute instances add-metadata my-vm-instance \
+    --metadata enable-oslogin=TRUE \
+    --zone us-central1-a
+
+* Verify and Test Access:
+gcloud compute ssh alice@example.com@INSTANCE_NAME --zone ZONE
+gcloud compute ssh alice@example.com@my-vm-instance --zone us-central1-a --tunnel-through-iap
+===
+LISTING AND REMOVING ROLES:
+
+* List All IAM Roles Assigned to Users:
+gcloud projects get-iam-policy PROJECT_ID \
+    --flatten="bindings[]" \
+    --format="table(bindings.role, bindings.members)"
+
+* List All IAM Roles Assigned to Particular User:
+gcloud projects get-iam-policy my-project \
+    --flatten="bindings[].members" \
+    --format="table(bindings.role)" \
+    --filter="bindings.members:user:user@example.com"
+
+* To remove role to User:
+gcloud projects remove-iam-policy-binding my-project \
+    --member='user:user@example.com' \
+    --role='roles/compute.osLogin'
+===
+
+Project Viewer Role: Grants read-only access to project resources.
+OS Login Role: Grants SSH access to the VM as a standard user.
+OS Admin Login Role: Grants SSH access to the VM as an administrator.
+------------------------------------------------------------------------
+EX:
+
+1. Enable Necessary APIs
+gcloud services enable iap.googleapis.com compute.googleapis.com
+
+2. Assign Project Viewer Role:
+gcloud projects add-iam-policy-binding sumanth-97 \
+    --member='user:saravana08052002@gmail.com' \
+    --role='roles/viewer'
+
+3. Assign serviceAccountUser:
+gcloud projects add-iam-policy-binding sumanth-97 \
+    --member='user:saravana08052002@gmail.com' \
+    --role='roles/iam.serviceAccountUser'
+
+4. Assign OS Login Role (for standard user access):
+gcloud projects add-iam-policy-binding sumanth-97 \
+    --member='user:saravana08052002@gmail.com' \
+    --role='roles/compute.osAdminLogin'
+
+5. gcloud compute instances add-metadata base-dev-vm \
+    --metadata enable-oslogin=TRUE \
+    --zone us-west4-b
