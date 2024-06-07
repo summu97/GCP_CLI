@@ -1,0 +1,62 @@
+STEP1:
+vim email.txt
+----
+# Users
+mounisha94925@gmail.com
+lasyasrilasya14@gmail.com
+avadaequare@gmail.com
+saravana08052002@gmail.com
+
+# Service accounts
+# service-account1@example.iam.gserviceaccount.com
+# service-account2@example.iam.gserviceaccount.com
+----
+
+STEP2:
+vim add_iam_role_bindings_to_users.sh
+
+#!/bin/bash
+
+# Check if the email file is provided as an argument
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <email_file>"
+    exit 1
+fi
+
+# Check if the email file exists
+EMAIL_FILE=$1
+if [ ! -f "$EMAIL_FILE" ]; then
+    echo "Error: Email file '$EMAIL_FILE' not found."
+    exit 1
+fi
+
+# Define the project ID
+PROJECT_ID="sumanth-97"
+
+# Read email addresses from the file and iterate over them
+while IFS= read -r USER_EMAIL; do
+    # Skip empty lines and lines starting with #
+    if [[ -z "$USER_EMAIL" || "$USER_EMAIL" =~ ^# ]]; then
+        continue
+    fi
+
+    # Construct and execute gcloud commands for each role
+    for ROLE in "roles/viewer" "roles/iam.serviceAccountUser" "roles/compute.osAdminLogin"; do
+        # Construct the gcloud command
+        COMMAND="gcloud projects add-iam-policy-binding $PROJECT_ID \
+            --member='user:$USER_EMAIL' \
+            --role='$ROLE'"
+
+        # Execute the gcloud command
+        echo "Executing command: $COMMAND"
+        eval "$COMMAND"
+    done
+done < "$EMAIL_FILE"
+----
+STEP3:
+Giving executable permissions to file:
+chmod +x add_iam_role_bindings_to_users.sh
+
+STEP4:
+Running file:
+./add_iam_role_bindings_to_users.sh email.txt
