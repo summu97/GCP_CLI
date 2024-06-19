@@ -42,7 +42,7 @@ while IFS= read -r USER_EMAIL; do
     fi
 
     # Construct and execute gcloud commands for each role
-    for ROLE in "roles/viewer" "roles/iam.serviceAccountUser" "roles/compute.osAdminLogin"; do
+    for ROLE in "roles/viewer" "roles/iam.serviceAccountUser" "roles/compute.instances.setMetadata" "roles/compute.osAdminLogin"; do
         # Construct the gcloud command
         COMMAND="gcloud projects add-iam-policy-binding $PROJECT_ID \
             --member='user:$USER_EMAIL' \
