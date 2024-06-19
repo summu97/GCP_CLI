@@ -61,3 +61,8 @@ chmod +x add_iam_role_bindings_to_users.sh
 STEP4:
 Running file:
 ./add_iam_role_bindings_to_users.sh email.txt
+
+STEP5:
+Run following command:
+gcloud compute instances add-metadata VM_NAME --metadata enable-oslogin=TRUE --zone REGION
+
